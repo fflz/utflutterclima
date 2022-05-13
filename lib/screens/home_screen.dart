@@ -3,32 +3,46 @@ import 'package:flutter/material.dart';
 import 'package:utflutterclima/models/weather.dart';
 import 'package:utflutterclima/services/api_service.dart';
 import 'package:utflutterclima/utilities/colors.dart';
-
-import 'login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:utflutterclima/screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final VoidCallback signOut;
+  const HomeScreen(this.signOut, {Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Icon customIcon = const Icon(Icons.search_sharp);
+  Widget customSearchBar = const Text('Cidade');
+
   String city = "";
-  String location = "";
   String Address =
-      "Ponta Grossa"; // hard coded por enquanto, planejo utilizar o geolocator e pegar a localização atual do dispositivo na etapa 2/3
+      "Fortaleza"; // hard-coded por enquanto, planejo utilizar o geolocator e pegar a localização atual do dispositivo na etapa 2/3
   List<Weather> weatherList = [];
+
+  signOut() {
+    setState(() {
+      widget.signOut();
+    });
+  }
+
+  var value;
+
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      value = preferences.getInt("value");
+    });
+  }
 
   @override
   void initState() {
     getWeatherData(Address);
     super.initState();
-  }
-
-  void _navigateToNextScreen(BuildContext context) {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => LoginPage()));
+    getPref();
   }
 
   @override
@@ -178,12 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
       leading: IconButton(
         color: Colors.black,
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          );
+          signOut();
         },
-        icon: Icon(Icons.account_box_sharp),
+        icon: Icon(Icons.logout_sharp),
+        iconSize: 45,
       ),
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -230,6 +242,20 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(
           width: 15.0,
         ),
+        IconButton(
+          icon: customIcon,
+          onPressed: () {
+            setState(() {
+              if (customIcon.icon == Icons.search) {
+                print("implementar"); // busca cidade
+              } else {
+                customIcon = const Icon(Icons.search);
+                customSearchBar = const Text('Cidade');
+              }
+            });
+          },
+          color: Colors.black,
+        )
       ],
     );
   }
@@ -275,4 +301,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return "erro api";
     }
   }
+}
+
+@override
+Widget build(BuildContext context) {
+  // TODO: implement build
+  throw UnimplementedError();
 }

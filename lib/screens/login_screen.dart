@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:utflutterclima/models/user.dart';
 import 'package:utflutterclima/screens/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../data/login_ctr.dart';
 
+import '../services/login_response.dart';
 import '../utilities/bezierContainer.dart';
 
 class LoginPage extends StatefulWidget {
@@ -10,308 +14,161 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+enum LoginStatus { notSignIn, signIn }
+
+class _LoginPageState extends State<LoginPage> implements LoginCallBack {
+  LoginStatus _loginStatus = LoginStatus.notSignIn;
+  late String _username, _password;
+  late LoginResponse _response;
+  late RegisterResponse _Rresponse;
+  int resposta = 0;
+
+  final formKey = GlobalKey<FormState>();
+  final scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isLoading = false;
+
+  _LoginPageState() {
+    _response = LoginResponse(this);
+    _Rresponse = RegisterResponse();
+  }
+
+  void _showSnackBar(String text) {
+    scaffoldKey.currentState?.showSnackBar(SnackBar(
+      content: Text(text),
+    ));
+  }
+
+  void _submit() {
+    final form = formKey.currentState;
+
+    if (form!.validate()) {
+      setState(() {
+        _isLoading = true;
+        form.save();
+        _response.doLogin(_username, _password);
+      });
+    }
+  }
+
+  void _submitRegister() {
+    final form = formKey.currentState;
+
+    if (form!.validate()) {
+      setState(() {
+        form.save();
+        resposta = _Rresponse.doRegister(_username, _password);
+        _showSnackBar("Usuario cadastrado com sucesso!");
+      });
+    }
+  }
+
+  var value;
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      value = preferences.getInt("value");
+
+      _loginStatus = value == 1 ? LoginStatus.signIn : LoginStatus.notSignIn;
+    });
+  }
+
+  signOut() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      preferences.setInt("value", 0);
+      _loginStatus = LoginStatus.notSignIn;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getPref();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    return Scaffold(
-      body: SafeArea(
-        child: Container(
-          height: height,
-          child: Stack(
-            children: <Widget>[
-              Positioned(
-                top: -height * .15,
-                right: -MediaQuery.of(context).size.width * .4,
-                child: BezierContainer(),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      SizedBox(height: height * .2),
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: const TextSpan(
-                          text: 'UTF',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.orange,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'lutter',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 30,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Column(
-                        children: <Widget>[
-                          SizedBox(
-                            height: 80,
-                          ),
-                          Container(
-                            margin: EdgeInsets.symmetric(
-                              vertical: 10,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  "Email",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                TextField(
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                  ),
-                                  textAlign: TextAlign.start,
-                                  obscureText: false,
-                                  decoration: InputDecoration(
-                                    hintText: "email",
-                                    suffixIcon: Icon(
-                                      Icons.email,
-                                      color: Colors.black54,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.red,
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                        15,
-                                      ),
-                                    ),
-                                    fillColor: Color(
-                                      0xfff3f3f4,
-                                    ),
-                                    filled: true,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            margin: EdgeInsets.symmetric(vertical: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  "Senha",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                TextField(
-                                  obscureText: true,
-                                  decoration: InputDecoration(
-                                    hintText: "senha",
-                                    suffixIcon: Icon(
-                                      Icons.lock,
-                                      color: Colors.black54,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        15,
-                                      ),
-                                    ),
-                                    fillColor: Color(
-                                      0xfff3f3f4,
-                                    ),
-                                    filled: true,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Container(
-                        width: MediaQuery.of(
-                          context,
-                        ).size.width,
-                        padding: EdgeInsets.symmetric(
-                          vertical: 15,
-                        ),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(
-                              15,
-                            ),
-                          ),
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                                color: Colors.grey.shade200,
-                                offset: Offset(2, 4),
-                                blurRadius: 5,
-                                spreadRadius: 2),
-                          ],
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: const [
-                              Colors.blue,
-                              Colors.lightBlue,
-                            ],
-                          ),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Login indisponivel'),
-                                content: Text('Retorne na ETAPA 2'),
-                                actions: [
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text('Voltar'))
-                                ],
-                              ),
-                            );
-                          },
-                          child: Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 10,
-                        ),
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'Esqueceu sua senha?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text('Registro indisponivel'),
-                              content: Text('Retorne na ETAPA 2'),
-                              actions: [
-                                ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text('Voltar'))
-                              ],
-                            ),
-                          );
-                        },
-                        child: Container(
-                          margin: EdgeInsets.symmetric(
-                            vertical: 20,
-                          ),
-                          padding: EdgeInsets.all(
-                            15,
-                          ),
-                          alignment: Alignment.bottomCenter,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const <Widget>[
-                              Text(
-                                'Não tem uma conta?',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                'Registrar',
-                                style: TextStyle(
-                                  color: Color(
-                                    0xFF0389F6,
-                                  ),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 40,
-                left: 0,
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10,
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        Container(
-                          padding: EdgeInsets.only(
-                            left: 0,
-                            top: 10,
-                            bottom: 10,
-                          ),
-                          child: Icon(
-                            Icons.keyboard_arrow_left,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Text(
-                          'Voltar',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+    switch (_loginStatus) {
+      case LoginStatus.notSignIn:
+        var loginBtn = RaisedButton(
+          onPressed: _submit,
+          child: Text("Login"),
+          color: Colors.green,
+        );
+        var registerBtn = RaisedButton(
+          onPressed: _submitRegister,
+          child: Text("Cadastro"),
+          color: Colors.green,
+        );
+        var loginForm = Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Form(
+              key: formKey,
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: TextFormField(
+                      onSaved: (val) => _username = val!,
+                      decoration: InputDecoration(labelText: "Usuario"),
                     ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: TextFormField(
+                        onSaved: (val) => _password = val!,
+                        decoration: InputDecoration(labelText: "Senha"),
+                        obscureText: true),
+                  )
+                ],
               ),
-            ],
+            ),
+            loginBtn,
+            registerBtn
+          ],
+        );
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text("UTFlutter Login"),
           ),
-        ),
-      ),
-    );
+          key: scaffoldKey,
+          body: Center(
+            child: loginForm,
+          ),
+        );
+      case LoginStatus.signIn:
+        return HomeScreen(signOut);
+    }
+  }
+
+  savePref(int value, String user, String pass) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      preferences.setInt("value", value);
+      preferences.setString("user", user);
+      preferences.setString("pass", pass);
+    });
+  }
+
+  @override
+  void onLoginError(String error) {
+    _showSnackBar("Usuario ou senha incorreta!");
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void onLoginSuccess(User user) async {
+    if (user != null) {
+      savePref(1, user.username, user.password);
+      _loginStatus = LoginStatus.signIn;
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 }
