@@ -9,8 +9,8 @@ Um aplicativo que mostra o clima e atual e dos proximos 6 dias adiantes da regi�
 ✅ Request API e Response, recebendo todas as informações sobre o clima em determinada cidade.  
 ✅ Uso de formulário  
 ✅ Navegação entre pagina inicial e pagina de login  
-❌ Banco de dados  
-❌ Pagina de Registro  
+✅ Banco de dados  
+✅ Pagina de Registro  
 ❌ Uso pacote **geolocator** para utilizar a localização atual do smartphone.  
 
 ### Screenshot:
