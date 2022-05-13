@@ -13,5 +13,8 @@ Um aplicativo que mostra o clima e atual e dos proximos 6 dias adiantes da regi�
 ✅ Pagina de Registro  
 ❌ Uso pacote **geolocator** para utilizar a localização atual do smartphone.  
 
+### Database:
+Usuarios ja inseridos para teste (usuario - senha) : user1 - 12345, user2 - 12345, user3 - 54321, aula - teste
+
 ### Screenshot:
 ![Imagem](/images/ss1.png?raw=true "Screenshot 1")
